@@ -1,11 +1,13 @@
-# OpenCLAW
-**Complete OpenClaw installation, configuration, and uninstallation guide for MacOS** in **English**. I’ll make it step-by-step so nothing is missed.
+# 🦞 OpenClaw Setup Guide for macOS
+
+**Complete installation, configuration, and uninstallation instructions for OpenClaw on macOS.**
+Includes running **local Ollama models**, pairing Telegram, and handling offline setups.
 
 ---
 
-# 1️⃣ Prerequisites
+## 1️⃣ Prerequisites
 
-To run **OpenClaw** on Mac, you need:
+Before installing OpenClaw:
 
 * **Node.js 22+** (v20 won’t work)
 * **npm / pnpm / yarn** (package manager)
@@ -22,11 +24,11 @@ python3 --version
 
 ---
 
-# 2️⃣ Installing OpenClaw
+## 2️⃣ Installing OpenClaw
 
 ### a) Update Node.js (if needed)
 
-If you have **nvm**:
+If using **nvm**:
 
 ```bash
 nvm install 22
@@ -34,51 +36,90 @@ nvm use 22
 nvm alias default 22
 ```
 
----
-
-### b) Install OpenClaw
+### b) Install OpenClaw globally
 
 ```bash
 npm install -g openclaw
-```
-
-or with pnpm:
-
-```bash
+# or
 pnpm add -g openclaw
 ```
 
-✅ Verify installation:
+Verify installation:
 
 ```bash
 openclaw --version
+# Example: OpenClaw 2026.3.8
 ```
-
-* Output example: `OpenClaw 2026.3.8`
 
 ---
 
-# 3️⃣ Configuring OpenClaw
+## 3️⃣ Initializing OpenClaw
 
-1️⃣ **Initialize default config:**
+Start onboarding (sets default config):
 
 ```bash
-openclaw init
+openclaw onboard
 ```
 
-2️⃣ **Add API key** (if using OpenAI models):
+Open the dashboard:
+
+```bash
+openclaw dashboard
+```
+
+---
+
+## 4️⃣ Configuring OpenClaw
+
+### a) API Key (Optional — for OpenAI models)
 
 ```bash
 openclaw config set openai.api_key YOUR_API_KEY
 ```
 
-3️⃣ **Set local AI model** (optional):
+### b) Local Ollama model (offline)
+
+1. **Start Ollama local server**:
 
 ```bash
-openclaw model set gpt-5.1-codex
+ollama serve
 ```
 
-4️⃣ **Add / enable skills**:
+2. **Create auth profile for Ollama**:
+
+```bash
+openclaw agents add ollama
+# Provider: ollama
+# API key: ollama-local
+```
+
+3. **Set primary model**:
+
+```bash
+openclaw config set agents.defaults.model.primary ollama/llama3:latest
+# Disable tools for offline model
+openclaw config set agents.defaults.model.disableTools true
+```
+
+4. **Restart gateway**:
+
+```bash
+openclaw gateway restart
+```
+
+5. **Start agent**:
+
+```bash
+openclaw agent start
+```
+
+> ✅ Now your OpenClaw agent uses a local Ollama model fully offline.
+
+---
+
+### c) Adding skills
+
+Example skills:
 
 ```bash
 openclaw skill add file
@@ -86,47 +127,76 @@ openclaw skill add terminal
 openclaw skill add git
 ```
 
-5️⃣ **Run a test**:
+---
+
+### d) Pair Telegram (Optional)
 
 ```bash
-openclaw run
+openclaw pairing approve telegram <PAIRING_CODE>
 ```
-
-* This will start the agent and show logs in the terminal.
 
 ---
 
-# 4️⃣ Uninstalling OpenClaw
+## 5️⃣ Verifying status
 
-### a) Remove from npm / pnpm
+```bash
+openclaw status
+openclaw models status
+```
+
+* Check gateway, agent sessions, and channels.
+* Make sure Ollama provider is **ready** and tokens are sufficient for your model.
+
+---
+
+## 6️⃣ Troubleshooting common issues
+
+| Issue                                          | Solution                                                                           |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **Model context too small**                    | Use a 16k token model (`llama3:16k-latest`) or fallback to OpenAI.                 |
+| **No API key for Ollama**                      | Add auth profile: `openclaw agents add ollama` with key `ollama-local`.            |
+| **Ollama API error 400 / tools not supported** | Disable tools: `openclaw config set agents.defaults.model.disableTools true`.      |
+| **Agent fails to reply**                       | Restart gateway: `openclaw gateway restart`. Check logs: `openclaw logs --follow`. |
+
+---
+
+## 7️⃣ Uninstalling OpenClaw
+
+### a) Stop gateway
+
+```bash
+openclaw gateway stop
+```
+
+### b) Remove global package
 
 ```bash
 npm uninstall -g openclaw
-```
-
-or
-
-```bash
+# or
 pnpm remove -g openclaw
 ```
 
----
-
-### b) Delete configuration / cache
+### c) Delete workspace/configs
 
 ```bash
 rm -rf ~/.openclaw
 rm -rf ~/.cache/openclaw
 ```
 
----
-
-### c) Verify
+### d) Verify removal
 
 ```bash
 openclaw --version
+# Output: command not found
 ```
 
-* Output: `command not found` → OpenClaw is fully removed
+---
+
+## 8️⃣ Tips
+
+* For **fully offline use**, stick to Ollama local models and disable tools.
+* For **tool-enabled AI**, use online models or OpenAI fallback.
+* Always restart gateway after changing model or auth settings.
+* Use `openclaw status --deep` for detailed debugging.
 
 ---
